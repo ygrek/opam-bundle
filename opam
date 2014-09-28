@@ -1,0 +1,11 @@
+opam-version: "1.1"
+name: "opam-bundle"
+version: "git"
+license: "MIT"
+maintainer: "ygrek@autistici.org"
+homepage: "https://github.com/ygrek/opam-bundle"
+build: [
+  ["./configure"]
+  [make]
+]
+depends: ["ocamlfind" "opam-lib" "jsonm"]
