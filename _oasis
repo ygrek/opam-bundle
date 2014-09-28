@@ -1,0 +1,16 @@
+OASISFormat: 0.4
+Name:        opam-bundle
+Version:     0.1
+Authors:     ygrek
+License:     MIT
+Plugins:     DevFiles (0.4)
+BuildTools:  ocamlbuild
+
+Synopsis:    OPAM bundler
+Description: Generate self-contained archives of opam packages with all transitive dependencies
+
+Executable "opam-bundle"
+  Path: src/
+  MainIs: main.ml
+  CompiledObject: best
+  BuildDepends: opam-lib.client, jsonm
