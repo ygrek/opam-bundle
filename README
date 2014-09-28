@@ -1,0 +1,8 @@
+
+Currently requires patched opam-lib
+
+  opam pin add opam-lib git://github.com/ygrek/opam#expose
+
+TODO:
+* include compiler
+* handle dynamically generated .install files (e.g. uutf)
