@@ -1,8 +1,35 @@
+OPAM bundler
+============
+
+opam-bundle takes an OPAM package name (target) and creates an archive with the
+sources of the package and all its transitive dependencies along with the shell script
+to build the target in the standalone setting.
+
+After that the bundle can be distributed to other hosts (without OPAM or any
+OCaml libraries installed) and used to build the target software without
+requestiing the user to install OPAM and dependecies manually. Dependencies get
+built and installed into the local directory independently from the host
+environment by configuring the environment variables for OCaml tools
+appropriately.
+
+opam-bundle will use the information from the current OPAM switch when creating
+the bundle (.e.g. the list of installed packages, optional dependencies, compiler
+version) which may (will) influence the dependency resolution and the contents of the
+bundle.
+
+Build
+-----
 
 Currently requires patched opam-lib
 
   opam pin add opam-lib git://github.com/ygrek/opam#expose
 
-TODO:
+After that usual:
+
+  ./configure && make
+
+TODO
+----
+
 * include compiler
 * handle dynamically generated .install files (e.g. uutf)
