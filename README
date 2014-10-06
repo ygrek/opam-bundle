@@ -31,5 +31,5 @@ After that usual:
 TODO
 ----
 
-* include compiler
 * handle dynamically generated .install files (e.g. uutf)
+* handle depexts
