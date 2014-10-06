@@ -1,3 +1,5 @@
+
+open Printf
 open OpamTypes
 
 let match_package_atom nv (name,cstr) =
@@ -48,13 +50,16 @@ let bundle ~dryrun ~deps_only bundle atoms =
   let root_dirs = [ "lib"; "bin"; "sbin"; "man"; "doc"; "share"; "etc" ] in
   let variables =
     let vars1 = List.map (fun k -> OpamVariable.(of_string k, S (Filename.concat "$BUNDLE_PREFIX" k))) root_dirs in
-    let vars2 = OpamVariable.([of_string "prefix", S "$BUNDLE_PREFIX"; of_string "preinstalled", B true]) in
+    let vars2 = OpamVariable.([
+      of_string "prefix", S "$BUNDLE_PREFIX";
+      of_string "preinstalled", B true;
+      of_string "make", S "$MAKE";
+    ]) in
     OpamVariable.Map.of_list (vars1 @ vars2)
   in
   let b = Buffer.create 10 in
   (* expecting quoted commands *)
   let shellout_build ~archive ~env commands =
-    let open Printf in
     let dir = Filename.chop_suffix archive ".tar.gz" in
     let pr fmt = ksprintf (fun s -> Buffer.add_string b (s ^ "\n")) fmt in
     pr "echo BUILD %s" dir;
@@ -71,6 +76,7 @@ let bundle ~dryrun ~deps_only bundle atoms =
     "#! /bin/sh";
     "set -eu";
     ": ${BUNDLE_PREFIX=$(pwd)/local}";
+    ": ${MAKE=make}";
     "mkdir -p build $BUNDLE_PREFIX " ^
       (String.concat " " (List.map (Filename.concat "$BUNDLE_PREFIX") root_dirs)) ^
       " $BUNDLE_PREFIX/lib/stublibs";
