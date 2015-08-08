@@ -112,6 +112,7 @@ let bundle ~reuse ~dryrun ~deps_only ~with_compiler bundle atoms =
   OpamSolverConfig.init ();
   OpamStd.Config.init ();
   let t = OpamState.load_state "bundle" OpamStateConfig.(!r.current_switch) in
+(*   let atoms = (OpamPackage.Name.of_string "opam", None) :: atoms in *)
   let atoms = OpamSolution.sanitize_atom_list ~permissive:true t atoms in
   let packages = resolve_deps t atoms in
   let packages = match deps_only with
@@ -136,8 +137,8 @@ let bundle ~reuse ~dryrun ~deps_only ~with_compiler bundle atoms =
     let archive_name = Filename.chop_suffix archive ".tar.gz" in
     let dir = Option.default archive_name dir in
     let pr fmt = ksprintf (fun s -> Buffer.add_string b (s ^ "\n")) fmt in
-    pr "echo BUILD %s" archive_name;
     pr "(";
+    pr "echo BUILD %s" archive_name;
     pr "cd build";
     pr "rm -rf %s" dir;
     pr "tar -xzf ../archives/%s" archive;
@@ -211,15 +212,16 @@ let bundle ~reuse ~dryrun ~deps_only ~with_compiler bundle atoms =
       let archive = Base.to_string (basename archive) in
       let opam = OpamState.opam t nv in (* dev? *)
       let env = OpamState.add_to_env t ~opam [] (OpamFile.OPAM.build_env opam) ~variables in
-      let install = OpamFile.Dot_install.safe_read (OpamPath.Switch.build_install t.root t.switch nv) in
       let commands = OpamFile.OPAM.build opam @ OpamFile.OPAM.install opam in
       let commands = OpamFilter.commands (OpamState.filter_env t ~opam ~local_variables:variables) commands in
       let commands = List.map (fun l -> l @ [">>build.log 2>>build.log || (echo FAILED; tail build.log; exit 1)"]) commands in
-      let install_commands = ref [] in
-      let switch = OpamSwitch.of_string "$BUNDLE_PREFIX" in
-      OpamAction.perform_dot_install { t with switch } (OpamPackage.name nv) install
-          (`Shell (fun l -> install_commands := l :: !install_commands));
-      shellout_build ~archive ~env (commands @ List.rev !install_commands);
+      let install_commands =
+        let name = OpamPackage.(Name.to_string @@ name nv) in
+        [
+          [ sprintf "if [ -f \"%s.install\" ] ; then opam-installer --prefix \"$BUNDLE_PREFIX\" \"%s.install\" ; fi" name name ]
+        ]
+      in
+      shellout_build ~archive ~env (commands @ install_commands);
     with e ->
       OpamStd.Exn.fatal e;
       OpamConsole.error_and_exit "%s" (Printexc.to_string e);
